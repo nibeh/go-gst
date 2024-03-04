@@ -5,7 +5,6 @@ import "C"
 
 import (
 	"fmt"
-	"runtime"
 	"unsafe"
 
 	"github.com/go-gst/go-glib/glib"
@@ -38,42 +37,42 @@ func NewElementWithName(factory string, name string) (*Element, error) {
 //
 // this function is needed for gstreamer props that have the "Construct Only" flag, e.g.:
 // https://gstreamer.freedesktop.org/documentation/audio/gstaudioaggregator.html?gi-language=c#GstAudioAggregator:force-live
-func NewElementWithProperties(factory string, properties map[string]interface{}) (*Element, error) {
-	props := make([]*C.char, 0)
-	values := make([]C.GValue, 0)
+// func NewElementWithProperties(factory string, properties map[string]interface{}) (*Element, error) {
+// 	props := make([]*C.char, 0)
+// 	values := make([]C.GValue, 0)
 
-	for p, v := range properties {
-		cpropName := C.CString(p)
-		defer C.free(unsafe.Pointer(cpropName))
+// 	for p, v := range properties {
+// 		cpropName := C.CString(p)
+// 		defer C.free(unsafe.Pointer(cpropName))
 
-		props = append(props, cpropName)
+// 		props = append(props, cpropName)
 
-		value, err := glib.GValue(v)
+// 		value, err := glib.GValue(v)
 
-		if err != nil {
-			return nil, err
-		}
+// 		if err != nil {
+// 			return nil, err
+// 		}
 
-		// value goes out of scope, but the finalizer must not run until the cgo call is finished
-		defer runtime.KeepAlive(value)
+// 		// value goes out of scope, but the finalizer must not run until the cgo call is finished
+// 		defer runtime.KeepAlive(value)
 
-		values = append(values, *(*C.GValue)(value.Unsafe()))
-	}
+// 		values = append(values, *(*C.GValue)(value.Unsafe()))
+// 	}
 
-	cfactory := C.CString(factory)
-	defer C.free(unsafe.Pointer(cfactory))
+// 	cfactory := C.CString(factory)
+// 	defer C.free(unsafe.Pointer(cfactory))
 
-	n := C.uint(len(properties))
-	p := unsafe.SliceData(props)
-	v := unsafe.SliceData(values)
+// 	n := C.uint(len(properties))
+// 	p := unsafe.SliceData(props)
+// 	v := unsafe.SliceData(values)
 
-	elem := C.gst_element_factory_make_with_properties(cfactory, n, p, v)
+// 	elem := C.gst_element_factory_make_with_properties(cfactory, n, p, v)
 
-	if elem == nil {
-		return nil, fmt.Errorf("could not create element: %s", factory)
-	}
-	return wrapElement(glib.TransferNone(unsafe.Pointer(elem))), nil
-}
+// 	if elem == nil {
+// 		return nil, fmt.Errorf("could not create element: %s", factory)
+// 	}
+// 	return wrapElement(glib.TransferNone(unsafe.Pointer(elem))), nil
+// }
 
 // NewElementMany is a convenience wrapper around building many GstElements in a
 // single function call. It returns an error if the creation of any element fails. A
